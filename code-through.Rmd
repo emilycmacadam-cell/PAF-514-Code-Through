@@ -1,0 +1,150 @@
+---
+title: "Cleaning Up Middle Earth"
+subtitle: "A Quick Guide to Character Strings in R"
+author: "Emily Echandia"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+  theme: sandstone
+  highlight: tango
+  toc: true
+  toc_depth: 2
+---
+
+```{css, echo=FALSE}
+body {
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r, echo=FALSE}
+
+library(pander)
+
+```
+
+## Introduction
+
+Text data often contains extra spaces, has inconsistent capitalization, or combines multiple pieces of information in a single field. This tutorial demonstrates a few base R functions that make character strings easier to clean. We'll create a data frame from a small sample vector to demonstrate how each function changes the data.
+
+```{r}
+
+names <- c(" frodo baggins ", 
+           "SAMWISE GAMGEE",
+           " aragorn ",
+           "legolas  greenleaf",
+           " GANDALF",
+           "gimli son of gloin ",
+           "PEREGRIN TOOK",
+           " meriadoc brandybuck",
+           "ARWEN",
+           " boromir "
+)
+
+names.df <- data.frame(
+  original = names
+)
+
+```
+
+Each step builds on the previous one to show how the data changes throughout the cleaning process.
+
+## Remove Extra Spaces with `trimws()`
+
+The `trimws()` function removes whitespace at the beginning and end of a string, but leaves spaces between words.
+
+```{r, results='hide'}
+
+# Remove extra spaces
+names.df$trimmed <- trimws(names.df$original)
+
+```
+
+Compare the trimmed names to the original values below:
+
+```{r, echo=FALSE}
+
+
+pander(names.df)
+
+```
+...it's an improvement, but our data still needs some work.
+
+## Standardize Capitalization
+
+We can use `tolower()` to make text lowercase, `toupper()` to make it uppercase, and `tools::toTitleCase()` for title case. Combining `tolower()` and `toTitleCase()` works well when the original capitalization is inconsistent, like in our example vector.
+
+
+```{r, results='hide'}
+
+#Standardize capitalization
+names.df$titlecase <- tools::toTitleCase(tolower(names.df$trimmed))
+
+```
+
+
+```{r, echo=FALSE}
+
+
+
+pander(names.df)
+
+```
+
+Our vector is already looking much better!
+
+## Replace Extra Spaces with `gsub()`
+
+The `gsub()` function searches for a pattern in a string and replaces it with something else. In our example vector, we can use it to replace multiple consecutive spaces between words with a single space. 
+
+```{r, results='hide'}
+
+# Replace extra spaces between words
+names.df$gsub <- gsub("\\s+", " ", names.df$titlecase)
+
+```
+
+Compare the results after applying `gsub()` to our previously cleaned names:
+
+```{r, echo=FALSE}
+
+
+pander(names.df)
+
+```
+
+Now our names have consistent capitalization and spacing.
+
+## Split Strings with `strsplit()`
+
+The `strsplit()` function separates a string based on a specified character or pattern. For example, we can split names at spaces to separate out the first names.
+
+`strsplit()` returns a list, so we can then use `sapply()` to extract the first element of each result.
+
+```{r, results='hide'}
+
+
+# Extract first names
+names.df$first.name <- sapply(
+  strsplit(names.df$gsub, " "),
+  function(x) x[1])
+
+```
+
+
+```{r, echo=FALSE}
+
+pander(names.df)
+
+```
+This allows us to extract specific information from character strings, which can be useful when working with datasets that combine multiple values in a single column.
+
+## Conclusion
+
+These functions provide simple ways to clean and standardize character data in R. Using `trimws()`, capitalization functions, `gsub()`, and `strsplit()` together can help prepare text data for further analysis.
+
